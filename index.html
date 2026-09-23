@@ -1,0 +1,59 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Проверка файлов сайта</title>
+<style>
+  body{background:#0b0b0b;color:#eee;font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;margin:0;padding:28px 20px 60px}
+  .w{max-width:760px;margin:0 auto}
+  h1{font-size:22px;margin:0 0 6px}
+  p{color:#9a9a9a;margin:0 0 22px}
+  .base{background:#161616;border:1px solid #2a2a2a;border-radius:8px;padding:14px 16px;margin:0 0 26px}
+  .base b{display:block;color:#9a9a9a;font-weight:400;font-size:13px;margin-bottom:8px}
+  code{font:14px/1.5 ui-monospace,Consolas,monospace;color:#7ee787;word-break:break-all}
+  .sum{font-size:17px;margin:0 0 18px;padding:12px 16px;border-radius:8px;background:#161616;border:1px solid #2a2a2a}
+  .sum.ok{border-color:#2ea043;color:#7ee787}
+  .sum.bad{border-color:#b62324;color:#ff8f8b}
+  ul{list-style:none;margin:0;padding:0}
+  li{display:flex;gap:10px;padding:5px 0;border-bottom:1px solid #1b1b1b;font:13px/1.5 ui-monospace,Consolas,monospace}
+  li i{font-style:normal;width:18px;flex:none}
+  .y{color:#7ee787}.n{color:#ff8f8b}.q{color:#6a6a6a}
+  li span{color:#8a8a8a;margin-left:auto;flex:none}
+</style>
+<div class="w">
+<h1>Проверка файлов сайта</h1>
+<p>Эта страница проверяет, что все файлы на месте и отдаются по прямым ссылкам.</p>
+<div class="base"><b>Впиши эту строку в <code style="color:#eee">CONFIG.base</code> в файле TILDA-2-В-БЛОК-T123.html:</b><code id="b">…</code></div>
+<div class="sum q" id="s">Проверяю файлы…</div>
+<ul id="l"></ul>
+</div>
+<script>
+var F=["video/hero.mp4","video/amouage.mp4","video/napitok.mp4","video/klip.mp4","video/cinema.mp4","video/peek-cinema.mp4","poster/cinema.jpg","video/odezhda.mp4","video/kosmetika.mp4","video/znakomstvo.mp4","video/peek-amouage.mp4","video/peek-napitok.mp4","video/peek-klip.mp4","video/peek-odezhda.mp4","video/peek-kosmetika.mp4","video/peek-znakomstvo.mp4","photo/metal-1.jpg","photo/metal-2.jpg","photo/metal-3.jpg","photo/metal-4.jpg","photo/metal-t1.jpg","photo/metal-t2.jpg","photo/metal-t3.jpg","photo/metal-t4.jpg","photo/brokat-1.jpg","photo/brokat-2.jpg","photo/brokat-3.jpg","photo/brokat-4.jpg","photo/brokat-t1.jpg","photo/brokat-t2.jpg","photo/brokat-t3.jpg","photo/brokat-t4.jpg","photo/lug-1.jpg","photo/lug-2.jpg","photo/lug-3.jpg","photo/lug-4.jpg","photo/lug-t1.jpg","photo/lug-t2.jpg","photo/lug-t3.jpg","photo/lug-t4.jpg","photo/dune.jpg","poster/hero.jpg","poster/amouage.jpg","poster/napitok.jpg","poster/klip.jpg","poster/odezhda.jpg","poster/kosmetika.jpg","poster/znakomstvo.jpg","poster/metal.jpg","poster/brokat.jpg","poster/lug.jpg"];
+var base=location.href.replace(/index\.html.*$/,'').replace(/[?#].*$/,'');
+if(base.slice(-1)!=='/') base+='/';
+document.getElementById('b').textContent='base : "'+base+'",';
+function plural(n,a,b,c){var d=n%10,e=n%100;return e>=11&&e<=14?c:d===1?a:d>=2&&d<=4?b:c;}
+var l=document.getElementById('l'), s=document.getElementById('s'), ok=0, done=0;
+F.forEach(function(f){
+  var li=document.createElement('li');
+  li.innerHTML='<i class="q">•</i>'+f+'<span></span>';
+  l.appendChild(li);
+  fetch(base+f,{headers:{Range:'bytes=0-0'}}).then(function(r){
+    var g=r.ok; if(g) ok++;
+    li.firstChild.className=g?'y':'n';
+    li.firstChild.textContent=g?'✓':'✕';
+    var cr=r.headers.get('content-range'), len=cr&&cr.split('/')[1];
+    if(!len) len=r.headers.get('content-length');
+    li.lastChild.textContent=g?(len&&+len>1?(len/1048576).toFixed(2)+' МБ':'есть'):('ошибка '+r.status);
+  }).catch(function(){
+    li.firstChild.className='n'; li.firstChild.textContent='✕';
+    li.lastChild.textContent='не отвечает';
+  }).then(function(){
+    if(++done===F.length){
+      var bad=F.length-ok;
+      s.className='sum '+(bad?'bad':'ok');
+      s.textContent=bad?(plural(bad,"Не хватает файла","Не хватает файлов","Не хватает файлов")+": "+bad+" из "+F.length+". Имена отмечены ✕ ниже.")
+                       :("Все файлы на месте — "+F.length+plural(F.length," штука"," штуки"," штук")+". Можно копировать строку выше.");
+    }
+  });
+});
+</script>
